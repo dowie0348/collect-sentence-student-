@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>보물 문장 탐험대</title>
+<style>
+  :root{
+    --sky-top:#bfe3ff; --sky-bot:#eaf7ff;
+    --grass:#a8d98a; --grass-dark:#8fca6c;
+    --wood:#c99a63; --wood-dark:#a97a44;
+    --heart:#ff8fab; --express:#7cc6ff; --think:#ffd166;
+    --ink:#4a3b2a; --card:#fffdf6;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;font-family:'Noto Sans KR','Malgun Gothic',sans-serif;color:var(--ink);overflow:hidden;}
+  body{background:linear-gradient(180deg,var(--sky-top) 0%, var(--sky-bot) 55%, var(--grass) 56%, var(--grass-dark) 100%);position:relative;}
+  .cloud{position:absolute;background:#fff;border-radius:50px;opacity:.85;animation:drift 40s linear infinite;}
+  .cloud:before,.cloud:after{content:'';position:absolute;background:#fff;border-radius:50%;}
+  .c1{width:90px;height:32px;top:6%;left:-120px;}
+  .c1:before{width:50px;height:50px;top:-24px;left:10px;}
+  .c1:after{width:40px;height:40px;top:-16px;left:50px;}
+  .c2{width:70px;height:26px;top:14%;left:-200px;animation-duration:55s;animation-delay:-10s;}
+  .c2:before{width:36px;height:36px;top:-16px;left:8px;}
+  .c2:after{width:30px;height:30px;top:-12px;left:36px;}
+  @keyframes drift{from{transform:translateX(0);}to{transform:translateX(140vw);}}
+  #app{position:relative;z-index:2;height:100%;width:100%;display:flex;align-items:center;justify-content:center;}
+
+  .login-box{background:var(--card);border-radius:28px;padding:36px 30px;width:min(420px,90vw);
+    box-shadow:0 12px 0 rgba(0,0,0,0.08),0 20px 40px rgba(0,0,0,0.15);border:4px solid #fff;text-align:center;}
+  .login-box h1{font-size:1.5rem;margin:0 0 4px;}
+  .login-box .sub{font-size:0.9rem;color:#8a7a63;margin-bottom:22px;}
+  .login-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
+  .field{text-align:left;}
+  .field label{font-size:0.78rem;font-weight:700;color:#7a6a52;margin-bottom:4px;display:block;}
+  .field input,.field select{width:100%;padding:10px 12px;border-radius:14px;border:2px solid #e7dcc8;font-size:1rem;background:#fff9ec;outline:none;box-sizing:border-box;}
+  .field input:focus,.field select:focus{border-color:var(--express);}
+  .btn{display:inline-block;width:100%;padding:14px;margin-top:6px;background:linear-gradient(180deg,#ffd77a,#ffb84d);
+    border:none;border-radius:18px;font-size:1.1rem;font-weight:800;color:#5a3d10;cursor:pointer;box-shadow:0 6px 0 #d99b2b;transition:transform .06s;}
+  .btn:active{transform:translateY(4px);box-shadow:0 2px 0 #d99b2b;}
+  .btn.secondary{background:linear-gradient(180deg,#8fd3ff,#4fa8f0);color:#0b3a5c;box-shadow:0 6px 0 #2f7fb8;}
+  .btn.secondary:active{box-shadow:0 2px 0 #2f7fb8;}
+  .err{color:#e2554b;font-size:0.85rem;height:18px;margin-top:6px;}
+
+  #main{display:none;height:100%;width:100%;flex-direction:column;}
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:rgba(255,255,255,0.55);backdrop-filter:blur(4px);font-size:0.85rem;font-weight:700;gap:8px;flex-wrap:wrap;}
+  .topbar .logout{background:none;border:none;color:#a55;font-weight:700;cursor:pointer;font-size:0.8rem;}
+  .status{font-size:0.72rem;color:#3a8a4a;}
+  .status.off{color:#c05a3a;}
+
+  .lens-zone{flex:3;display:flex;gap:10px;padding:12px 14px 6px;overflow:hidden;}
+  .lens-card{flex:1;border-radius:20px;padding:12px 10px;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;position:relative;border:3px solid rgba(255,255,255,0.6);box-shadow:0 6px 14px rgba(0,0,0,0.12);}
+  .lens-heart{background:linear-gradient(160deg,#ff9fb6,#ff6f91);}
+  .lens-express{background:linear-gradient(160deg,#8fd3ff,#4fa8f0);}
+  .lens-think{background:linear-gradient(160deg,#ffe08a,#ffb648);}
+  .lens-icon{font-size:1.8rem;}
+  .lens-name{font-size:1rem;font-weight:800;margin:4px 0 2px;}
+  .lens-desc{font-size:0.72rem;line-height:1.3;opacity:0.95;}
+
+  .collect-zone{flex:7;background:var(--wood);
+    background-image:linear-gradient(180deg, rgba(255,255,255,0.08), transparent 40%),repeating-linear-gradient(90deg, rgba(0,0,0,0.03) 0 2px, transparent 2px 40px);
+    border-radius:26px 26px 0 0;margin:0 8px;padding:16px;overflow-y:auto;box-shadow:inset 0 6px 14px rgba(0,0,0,0.15);}
+  .add-btn-wrap{max-width:640px;margin:0 auto 14px;text-align:center;}
+  .add-btn{display:inline-block;padding:16px 26px;background:linear-gradient(180deg,#8effb0,#4bd67f);border:none;border-radius:20px;
+    font-size:1.05rem;font-weight:800;color:#1a4a2a;cursor:pointer;box-shadow:0 6px 0 #2fa35f;}
+  .add-btn:active{transform:translateY(4px);box-shadow:0 2px 0 #2fa35f;}
+
+  /* 내 책장 */
+  .bookshelf-title{color:#fff3e0;font-weight:800;margin:6px auto 8px;max-width:640px;font-size:0.95rem;display:flex;align-items:center;justify-content:space-between;}
+  .bookshelf-title .reset{background:#fff;border:none;border-radius:14px;padding:5px 12px;font-size:0.72rem;font-weight:700;color:#7a6a52;cursor:pointer;}
+  .bookshelf{display:flex;gap:10px;overflow-x:auto;max-width:640px;margin:0 auto 16px;padding-bottom:6px;}
+  .book-cover{flex:0 0 auto;width:70px;cursor:pointer;text-align:center;}
+  .book-cover img{width:70px;height:96px;object-fit:cover;border-radius:8px;box-shadow:0 4px 8px rgba(0,0,0,0.25);border:3px solid transparent;}
+  .book-cover.active img{border-color:#ffd166;}
+  .book-cover .noimg{width:70px;height:96px;border-radius:8px;background:#e7dcc8;display:flex;align-items:center;justify-content:center;font-size:1.6rem;box-shadow:0 4px 8px rgba(0,0,0,0.25);}
+  .book-cover .bname{font-size:0.65rem;color:#fff3e0;margin-top:4px;line-height:1.2;max-height:2.4em;overflow:hidden;}
+
+  .list-title{color:#fff3e0;font-weight:800;margin:14px auto 8px;max-width:640px;font-size:0.95rem;}
+  .entry{background:var(--card);border-radius:14px;padding:12px 14px;max-width:640px;margin:0 auto 10px;box-shadow:0 4px 10px rgba(0,0,0,0.12);border-left:8px solid #ccc;display:flex;gap:10px;}
+  .entry.heart{border-left-color:var(--heart);}
+  .entry.express{border-left-color:var(--express);}
+  .entry.think{border-left-color:var(--think);}
+  .entry .cover{width:44px;height:60px;object-fit:cover;border-radius:6px;flex:0 0 auto;}
+  .entry .body{flex:1;min-width:0;}
+  .entry .meta{font-size:0.72rem;color:#9a8a70;margin-bottom:4px;}
+  .entry .sent{font-size:0.95rem;line-height:1.5;}
+  .entry .photo{margin-top:8px;max-width:100%;border-radius:8px;}
+
+  /* 모달 공통 */
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:none;align-items:center;justify-content:center;z-index:50;}
+  .modal-bg.show{display:flex;}
+  #manualModalBg{z-index:60;}
+  .modal{background:var(--card);border-radius:24px;padding:26px 22px;width:min(520px,92vw);box-shadow:0 20px 50px rgba(0,0,0,0.3);max-height:88vh;overflow-y:auto;position:relative;}
+  .modal h2{margin:0 0 4px;font-size:1.15rem;text-align:center;}
+  .modal .sub{text-align:center;font-size:0.82rem;color:#8a7a63;margin-bottom:16px;}
+  .close-x{position:absolute;top:14px;right:18px;background:none;border:none;font-size:1.3rem;cursor:pointer;color:#8a7a63;}
+
+  /* 책 고르기 모달 */
+  .book-tabs{display:flex;gap:8px;margin-bottom:14px;}
+  .book-tab{flex:1;text-align:center;padding:8px;border-radius:12px;background:#f2e8d5;font-weight:700;font-size:0.85rem;cursor:pointer;color:#7a6a52;}
+  .book-tab.active{background:linear-gradient(180deg,#ffd77a,#ffb84d);color:#5a3d10;}
+  .book-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-height:320px;overflow-y:auto;}
+  .book-item{cursor:pointer;text-align:center;border-radius:10px;padding:6px;}
+  .book-item:hover{background:#f2e8d5;}
+  .book-item img{width:100%;height:100px;object-fit:cover;border-radius:6px;box-shadow:0 3px 6px rgba(0,0,0,0.15);}
+  .book-item .noimg{width:100%;height:100px;border-radius:6px;background:#e7dcc8;display:flex;align-items:center;justify-content:center;font-size:1.8rem;}
+  .book-item .bname{font-size:0.72rem;margin-top:5px;line-height:1.2;max-height:2.4em;overflow:hidden;}
+  .search-row{display:flex;gap:8px;margin-bottom:12px;}
+  .search-row input{flex:1;padding:10px 12px;border-radius:12px;border:2px solid #e7dcc8;font-size:0.9rem;}
+  .search-row button{padding:0 16px;border:none;border-radius:12px;background:var(--express);color:#fff;font-weight:800;cursor:pointer;}
+  .search-results{display:flex;flex-direction:column;gap:8px;max-height:300px;overflow-y:auto;}
+  .search-result{display:flex;gap:10px;padding:8px;border-radius:12px;cursor:pointer;align-items:center;}
+  .search-result:hover{background:#f2e8d5;}
+  .search-result img{width:42px;height:58px;object-fit:cover;border-radius:5px;flex:0 0 auto;}
+  .search-result .noimg{width:42px;height:58px;border-radius:5px;background:#e7dcc8;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex:0 0 auto;}
+  .search-result .txt b{display:block;font-size:0.88rem;}
+  .search-result .txt span{font-size:0.75rem;color:#8a7a63;}
+  .manual-add{margin-top:12px;text-align:center;}
+  .manual-add button{background:none;border:none;color:#4fa8f0;font-size:0.8rem;cursor:pointer;text-decoration:underline;}
+  .empty-note{text-align:center;color:#9a8a70;font-size:0.85rem;padding:20px;}
+
+  /* 렌즈 선택 */
+  .lens-pick{display:flex;flex-direction:column;gap:12px;}
+  .lens-pick .opt{border-radius:18px;padding:14px 16px;color:#fff;cursor:pointer;border:3px solid transparent;display:flex;gap:12px;align-items:center;transition:transform .1s;}
+  .lens-pick .opt:hover{transform:scale(1.02);}
+  .lens-pick .opt.heart{background:linear-gradient(160deg,#ff9fb6,#ff6f91);}
+  .lens-pick .opt.express{background:linear-gradient(160deg,#8fd3ff,#4fa8f0);}
+  .lens-pick .opt.think{background:linear-gradient(160deg,#ffe08a,#ffb648);}
+  .lens-pick .opt .ic{font-size:1.6rem;}
+  .lens-pick .opt .tx b{display:block;font-size:1rem;}
+  .lens-pick .opt .tx span{font-size:0.75rem;opacity:0.95;}
+
+  /* 문장 입력 폼 */
+  .selected-book{display:flex;gap:10px;align-items:center;background:#f2e8d5;border-radius:14px;padding:8px 10px;margin-bottom:12px;}
+  .selected-book img{width:36px;height:50px;object-fit:cover;border-radius:5px;}
+  .selected-book .noimg{width:36px;height:50px;border-radius:5px;background:#e7dcc8;display:flex;align-items:center;justify-content:center;font-size:1.2rem;}
+  .selected-book .txt{flex:1;font-size:0.82rem;}
+  .selected-book .txt b{display:block;}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+  .form-grid .full{grid-column:1/3;}
+  .form-grid label{font-size:0.75rem;font-weight:700;color:#7a6a52;display:block;margin-bottom:3px;}
+  .form-grid input,.form-grid textarea{width:100%;padding:9px 10px;border-radius:12px;border:2px solid #e7dcc8;font-size:0.95rem;background:#fffaf0;outline:none;font-family:inherit;box-sizing:border-box;}
+  textarea#sentence{min-height:80px;resize:vertical;}
+  .lens-badge{display:inline-block;padding:4px 12px;border-radius:20px;color:#fff;font-size:0.78rem;font-weight:700;margin-bottom:12px;}
+  .camera-row{display:flex;align-items:center;gap:10px;margin:10px 0;}
+  .camera-btn{background:#fff;border:2px dashed #c9b48f;border-radius:14px;padding:10px 14px;font-size:0.85rem;font-weight:700;color:#7a6a52;cursor:pointer;flex:1;text-align:center;}
+  .preview{max-width:120px;max-height:120px;border-radius:10px;border:2px solid #e7dcc8;display:none;}
+  .save-row{display:flex;gap:10px;margin-top:10px;}
+  .save-row .btn{flex:1;}
+
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#4a3b2a;color:#fff;padding:10px 20px;border-radius:20px;font-size:0.9rem;opacity:0;pointer-events:none;transition:opacity .3s;z-index:99;}
+  .toast.show{opacity:1;}
+  ::-webkit-scrollbar{width:8px;}
+  ::-webkit-scrollbar-thumb{background:var(--wood-dark);border-radius:8px;}
+</style>
+</head>
+<body>
+
+<div class="cloud c1"></div>
+<div class="cloud c2"></div>
+
+<div id="app">
+  <div class="login-box" id="loginBox">
+    <h1>📖 보물 문장 탐험대</h1>
+    <div class="sub">학년, 반, 번호, 이름을 넣고 탐험을 시작해요!</div>
+    <div class="login-grid">
+      <div class="field"><label>학년</label><select id="grade"><option value="3">3학년</option></select></div>
+      <div class="field"><label>반</label><input type="number" id="classNum" min="1" max="20" placeholder="예: 2"></div>
+      <div class="field"><label>번호</label><input type="number" id="num" min="1" max="40" placeholder="예: 15"></div>
+      <div class="field"><label>이름</label><input type="text" id="name" placeholder="예: 홍길동"></div>
+    </div>
+    <div class="err" id="loginErr"></div>
+    <button class="btn" id="loginBtn">탐험 시작하기 🚀</button>
+  </div>
+
+  <div id="main">
+    <div class="topbar">
+      <div class="who" id="whoLabel"></div>
+      <div class="status" id="statusLabel">🔄 연결 확인중...</div>
+      <button class="logout" id="logoutBtn">로그아웃</button>
+    </div>
+
+    <div class="lens-zone">
+      <div class="lens-card lens-heart"><div class="lens-icon">💗</div><div class="lens-name">마음 렌즈</div><div class="lens-desc">읽다가 마음이<br>움직인 문장</div></div>
+      <div class="lens-card lens-express"><div class="lens-icon">🎨</div><div class="lens-name">표현 렌즈</div><div class="lens-desc">예쁘고 감각적인,<br>장면이 떠오르는 문장</div></div>
+      <div class="lens-card lens-think"><div class="lens-icon">💡</div><div class="lens-name">생각 렌즈</div><div class="lens-desc">새롭게 알게 되거나<br>깨닫게 되는 문장</div></div>
+    </div>
+
+    <div class="collect-zone">
+      <div class="add-btn-wrap"><button class="add-btn" id="openModalBtn">💎 새 보물 문장 담으러 가기</button></div>
+
+      <div class="bookshelf-title">📚 내 책장 (클릭하면 그 책의 문장만 볼 수 있어요)
+        <button class="reset" id="bookFilterReset" style="display:none;">전체 보기</button>
+      </div>
+      <div class="bookshelf" id="myBookshelf"></div>
+
+      <div class="list-title" id="listTitle">오늘 내가 모은 보물 문장</div>
+      <div id="entryList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 1단계: 책 고르기 모달 -->
+<div class="modal-bg" id="bookModalBg">
+  <div class="modal">
+    <button class="close-x" id="closeBookModal">✕</button>
+    <h2>📖 어떤 책을 읽고 있나요?</h2>
+    <div class="sub">이미 읽던 책을 고르거나, 새 책을 검색해서 추가해 보세요.</div>
+    <div class="book-tabs">
+      <div class="book-tab active" id="tabMyBooks">내가 읽은 책</div>
+      <div class="book-tab" id="tabNewBook">+ 새 책 검색</div>
+    </div>
+    <div id="myBooksPane">
+      <div class="book-grid" id="myBooksGrid"></div>
+    </div>
+    <div id="newBookPane" style="display:none;">
+      <div class="search-row">
+        <input type="text" id="bookSearchInput" placeholder="책 제목을 입력해 보세요 (예: 마당을 나온 암탉)">
+        <button id="bookSearchBtn">검색</button>
+      </div>
+      <div class="search-results" id="bookSearchResults"></div>
+      <div class="manual-add"><button id="manualAddBtn">표지 없이 직접 입력해서 추가할래요</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- 직접 입력 모달 -->
+<div class="modal-bg" id="manualModalBg">
+  <div class="modal">
+    <button class="close-x" id="closeManualModal">✕</button>
+    <h2>✍️ 책 직접 입력하기</h2>
+    <div class="form-grid">
+      <div class="field full"><label>책 제목</label><input type="text" id="manualTitle" placeholder="예: 마당을 나온 암탉"></div>
+      <div class="field full"><label>지은이</label><input type="text" id="manualAuthor" placeholder="예: 황선미"></div>
+    </div>
+    <button class="btn secondary" id="manualConfirmBtn">이 책으로 추가하기</button>
+  </div>
+</div>
+
+<!-- 2단계: 렌즈 선택 모달 -->
+<div class="modal-bg" id="lensModalBg">
+  <div class="modal">
+    <button class="close-x" id="closeLensModal">✕</button>
+    <h2>어떤 렌즈로 문장을 찾았나요?</h2>
+    <div class="sub">문장을 고른 이유에 가장 가까운 렌즈를 골라보세요.</div>
+    <div class="lens-pick">
+      <div class="opt heart" data-lens="heart"><div class="ic">💗</div><div class="tx"><b>마음 렌즈</b><span>읽다가 마음이 움직인 문장</span></div></div>
+      <div class="opt express" data-lens="express"><div class="ic">🎨</div><div class="tx"><b>표현 렌즈</b><span>말이 예쁘거나 감각적, 장면이 떠오르는 문장</span></div></div>
+      <div class="opt think" data-lens="think"><div class="ic">💡</div><div class="tx"><b>생각 렌즈</b><span>새롭게 알게 되거나 깨닫게 되는 문장</span></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- 3단계: 문장 입력 모달 -->
+<div class="modal-bg" id="formModalBg">
+  <div class="modal">
+    <button class="close-x" id="closeFormModal">✕</button>
+    <h2>✨ 보물 문장 담기</h2>
+    <span class="lens-badge" id="lensBadge">💗 마음 렌즈</span>
+    <div class="selected-book" id="selectedBookBox"></div>
+    <div class="form-grid">
+      <div class="field"><label>날짜</label><input type="date" id="fDate"></div>
+      <div class="field"><label>쪽수</label><input type="text" id="fPage" placeholder="예: 45쪽"></div>
+      <div class="field full"><label>고른 문장</label><textarea id="sentence" placeholder="마음에 든 문장을 그대로 적어보세요."></textarea></div>
+    </div>
+    <div class="camera-row">
+      <label class="camera-btn" for="photoInput">📷 공책 사진으로 올리기 (타이핑이 어려울 때)</label>
+      <input type="file" id="photoInput" accept="image/*" capture="environment" style="display:none">
+      <img id="previewImg" class="preview">
+    </div>
+    <div class="save-row"><button class="btn" id="saveBtn">보물 문장 담기 💎</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- ===================== Firebase 설정 =====================
+  교사용 페이지와 반드시 같은 firebaseConfig를 사용하세요.
+======================================================== -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyBJYBoyPsaBN0UO4akytEpLDMkKsuu-X4Q",
+  authDomain: "collect-sentence.firebaseapp.com",
+  projectId: "collect-sentence",
+  storageBucket: "collect-sentence.firebasestorage.app",
+  messagingSenderId: "986273953677",
+  appId: "1:986273953677:web:45d58c5ab9bfa67ec82fc4"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// 구글 도서(Google Books) 검색용 API 키 - 학교 IP 공용 사용 시 요청 제한(429) 방지용
+const GOOGLE_BOOKS_API_KEY = 'AIzaSyD9Z9Xn6C-qXrzO9Ozo7HopLZ0DpupWJGU';
+
+let currentStudent = null;
+let currentLens = 'heart';
+let currentBook = null;      // {id, title, author, coverUrl}
+let uploadedImageData = null;
+let unsubscribeEntries = null;
+let unsubscribeBooks = null;
+let myBooks = [];            // 이 학생이 이미 추가한 책 목록
+let allEntriesCache = [];
+let activeBookFilter = null; // 책장에서 클릭한 책 id (null = 전체)
+
+const lensInfo = {
+  heart:   {label:'💗 마음 렌즈', color:'#ff6f91', class:'heart'},
+  express: {label:'🎨 표현 렌즈', color:'#4fa8f0', class:'express'},
+  think:   {label:'💡 생각 렌즈', color:'#ffb648', class:'think'}
+};
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 1800);
+}
+
+db.collection('_ping').limit(1).get().then(()=>{
+  document.getElementById('statusLabel').textContent = '🟢 서버 연결됨';
+}).catch(()=>{
+  const s = document.getElementById('statusLabel');
+  s.textContent = '🔴 연결 실패 (설정 확인 필요)';
+  s.classList.add('off');
+});
+
+// ---------------- 로그인 ----------------
+document.getElementById('loginBtn').addEventListener('click', async ()=>{
+  const grade = document.getElementById('grade').value;
+  const classNum = document.getElementById('classNum').value.trim();
+  const num = document.getElementById('num').value.trim();
+  const name = document.getElementById('name').value.trim();
+  const err = document.getElementById('loginErr');
+  if(!classNum || !num || !name){
+    err.textContent = '학년, 반, 번호, 이름을 모두 입력해 주세요.';
+    return;
+  }
+  err.textContent = '확인 중...';
+  try{
+    const snap = await db.collection('students')
+      .where('grade','==', grade).where('classNum','==', classNum)
+      .where('number','==', num).where('name','==', name)
+      .limit(1).get();
+    if(snap.empty){
+      err.textContent = '명단에서 찾을 수 없어요. 선생님께 확인해 주세요.';
+      return;
+    }
+    err.textContent = '';
+    currentStudent = { grade, classNum, num, name, key: `${grade}_${classNum}_${num}_${name}` };
+    document.getElementById('whoLabel').textContent = `${grade}학년 ${classNum}반 ${num}번 ${name}`;
+    document.getElementById('loginBox').style.display = 'none';
+    document.getElementById('main').style.display = 'flex';
+    document.getElementById('fDate').value = new Date().toISOString().slice(0,10);
+    startEntryListener();
+    startBookListener();
+  }catch(e){
+    console.error(e);
+    err.textContent = '서버 연결에 문제가 있어요. 잠시 후 다시 시도해 주세요.';
+  }
+});
+
+document.getElementById('logoutBtn').addEventListener('click', ()=>{
+  if(unsubscribeEntries) unsubscribeEntries();
+  if(unsubscribeBooks) unsubscribeBooks();
+  currentStudent = null;
+  document.getElementById('main').style.display = 'none';
+  document.getElementById('loginBox').style.display = 'block';
+});
+
+// ---------------- 책 목록(내 책장) ----------------
+function startBookListener(){
+  if(unsubscribeBooks) unsubscribeBooks();
+  unsubscribeBooks = db.collection('books')
+    .where('studentKey','==', currentStudent.key)
+    .onSnapshot(snap=>{
+      myBooks = [];
+      snap.forEach(doc=> myBooks.push({id:doc.id, ...doc.data()}));
+      renderMyBookshelf();
+      renderMyBooksGrid();
+    });
+}
+
+function renderMyBookshelf(){
+  const el = document.getElementById('myBookshelf');
+  el.innerHTML = '';
+  if(myBooks.length === 0){
+    el.innerHTML = '<div class="empty-note" style="color:#fff3e0;">아직 등록한 책이 없어요.</div>';
+    return;
+  }
+  myBooks.forEach(b=>{
+    const div = document.createElement('div');
+    div.className = 'book-cover' + (activeBookFilter===b.id ? ' active':'');
+    div.innerHTML = b.coverUrl
+      ? `<img src="${b.coverUrl}">`
+      : `<div class="noimg">📕</div>`;
+    div.innerHTML += `<div class="bname">${(b.title||'').replace(/</g,'&lt;')}</div>`;
+    div.addEventListener('click', ()=>{
+      activeBookFilter = (activeBookFilter===b.id) ? null : b.id;
+      document.getElementById('bookFilterReset').style.display = activeBookFilter ? 'inline-block' : 'none';
+      renderMyBookshelf();
+      renderEntries();
+    });
+    el.appendChild(div);
+  });
+}
+document.getElementById('bookFilterReset').addEventListener('click', ()=>{
+  activeBookFilter = null;
+  document.getElementById('bookFilterReset').style.display = 'none';
+  renderMyBookshelf();
+  renderEntries();
+});
+
+function renderMyBooksGrid(){
+  const el = document.getElementById('myBooksGrid');
+  el.innerHTML = '';
+  if(myBooks.length === 0){
+    el.innerHTML = '<div class="empty-note">아직 등록한 책이 없어요. "+ 새 책 검색" 탭에서 추가해 보세요.</div>';
+    return;
+  }
+  myBooks.forEach(b=>{
+    const div = document.createElement('div');
+    div.className = 'book-item';
+    div.innerHTML = (b.coverUrl ? `<img src="${b.coverUrl}">` : `<div class="noimg">📕</div>`)
+      + `<div class="bname">${(b.title||'').replace(/</g,'&lt;')}</div>`;
+    div.addEventListener('click', ()=>{
+      currentBook = b;
+      document.getElementById('bookModalBg').classList.remove('show');
+      document.getElementById('lensModalBg').classList.add('show');
+    });
+    el.appendChild(div);
+  });
+}
+
+// ---------------- 책 고르기 모달 흐름 ----------------
+document.getElementById('openModalBtn').addEventListener('click', ()=>{
+  document.getElementById('bookModalBg').classList.add('show');
+});
+document.getElementById('closeBookModal').addEventListener('click', ()=>{
+  document.getElementById('bookModalBg').classList.remove('show');
+});
+document.getElementById('tabMyBooks').addEventListener('click', ()=>{
+  document.getElementById('tabMyBooks').classList.add('active');
+  document.getElementById('tabNewBook').classList.remove('active');
+  document.getElementById('myBooksPane').style.display = 'block';
+  document.getElementById('newBookPane').style.display = 'none';
+});
+document.getElementById('tabNewBook').addEventListener('click', ()=>{
+  document.getElementById('tabNewBook').classList.add('active');
+  document.getElementById('tabMyBooks').classList.remove('active');
+  document.getElementById('newBookPane').style.display = 'block';
+  document.getElementById('myBooksPane').style.display = 'none';
+});
+
+// Google Books 검색 (공개 API, 별도 키 불필요)
+async function searchBooks(query){
+  const el = document.getElementById('bookSearchResults');
+  el.innerHTML = '<div class="empty-note">검색 중...</div>';
+  try{
+    const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=10&country=KR&key=${GOOGLE_BOOKS_API_KEY}`;
+    const res = await fetch(url);
+    if(!res.ok){
+      // 서버가 응답은 했지만 200이 아닌 경우 (예: 429 요청 제한, 403 등)
+      let bodyText = '';
+      try{ bodyText = await res.text(); }catch(_e){}
+      console.error('Google Books API 오류 응답:', res.status, res.statusText, bodyText);
+      el.innerHTML = `<div class="empty-note">책 검색 서버에서 오류가 왔어요 (코드 ${res.status}).<br>선생님께 이 코드 번호를 알려주세요.<br>아래 "직접 입력"을 이용해 보세요.</div>`;
+      return;
+    }
+    const data = await res.json();
+    el.innerHTML = '';
+    if(!data.items || data.items.length===0){
+      el.innerHTML = '<div class="empty-note">검색 결과가 없어요. 아래 "직접 입력"을 이용해 보세요.</div>';
+      return;
+    }
+    data.items.forEach(item=>{
+      const vi = item.volumeInfo || {};
+      const cover = vi.imageLinks ? (vi.imageLinks.thumbnail || vi.imageLinks.smallThumbnail) : null;
+      const title = vi.title || '제목 없음';
+      const author = (vi.authors||[]).join(', ');
+      const div = document.createElement('div');
+      div.className = 'search-result';
+      div.innerHTML = (cover ? `<img src="${cover.replace('http://','https://')}">` : `<div class="noimg">📕</div>`)
+        + `<div class="txt"><b>${title.replace(/</g,'&lt;')}</b><span>${author.replace(/</g,'&lt;')}</span></div>`;
+      div.addEventListener('click', async ()=>{
+        await addBookAndSelect(title, author, cover ? cover.replace('http://','https://') : null);
+      });
+      el.appendChild(div);
+    });
+  }catch(e){
+    // fetch 자체가 실패한 경우 (네트워크 차단, CORS, DNS 등) - 진짜 원인이 e.message에 들어있음
+    console.error('책 검색 fetch 실패:', e);
+    el.innerHTML = `<div class="empty-note">검색에 실패했어요.<br><span style="font-size:0.7rem;color:#c05a3a;">(${(e && e.message ? e.message : e).toString().replace(/</g,'&lt;')})</span><br>학교 네트워크가 이 주소를 막고 있을 수 있어요 — 선생님께 문의해 주세요.<br>아래 "직접 입력"을 이용해 보세요.</div>`;
+  }
+}
+document.getElementById('bookSearchBtn').addEventListener('click', ()=>{
+  const q = document.getElementById('bookSearchInput').value.trim();
+  if(q) searchBooks(q);
+});
+document.getElementById('bookSearchInput').addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter'){
+    const q = e.target.value.trim();
+    if(q) searchBooks(q);
+  }
+});
+
+document.getElementById('manualAddBtn').addEventListener('click', ()=>{
+  document.getElementById('bookModalBg').classList.remove('show');
+  document.getElementById('manualModalBg').classList.add('show');
+});
+document.getElementById('closeManualModal').addEventListener('click', ()=>{
+  document.getElementById('manualModalBg').classList.remove('show');
+  document.getElementById('bookModalBg').classList.add('show');
+});
+document.getElementById('manualConfirmBtn').addEventListener('click', async ()=>{
+  const title = document.getElementById('manualTitle').value.trim();
+  const author = document.getElementById('manualAuthor').value.trim();
+  if(!title){ showToast('책 제목을 입력해 주세요.'); return; }
+  document.getElementById('manualModalBg').classList.remove('show');
+  document.getElementById('manualTitle').value='';
+  document.getElementById('manualAuthor').value='';
+  await addBookAndSelect(title, author, null);
+});
+
+async function addBookAndSelect(title, author, coverUrl){
+  try{
+    // 이미 같은 제목의 책이 내 책장에 있으면 새로 만들지 않고 재사용
+    const existing = myBooks.find(b => b.title === title);
+    let book;
+    if(existing){
+      book = existing;
+    }else{
+      const docRef = await db.collection('books').add({
+        studentKey: currentStudent.key,
+        title, author: author || '', coverUrl: coverUrl || null,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      book = { id: docRef.id, title, author: author || '', coverUrl: coverUrl || null };
+    }
+    currentBook = book;
+    document.getElementById('bookModalBg').classList.remove('show');
+    document.getElementById('manualModalBg').classList.remove('show');
+    document.getElementById('lensModalBg').classList.add('show');
+  }catch(e){
+    console.error('책 추가 실패:', e);
+    if(e.code === 'permission-denied'){
+      showToast('저장 권한이 없어요. 선생님께 Firestore 보안 규칙에 books 컬렉션을 추가해달라고 알려주세요.');
+    }else{
+      showToast('책 추가에 실패했어요. 인터넷 연결을 확인해 주세요.');
+    }
+  }
+}
+
+// ---------------- 렌즈 선택 ----------------
+document.getElementById('closeLensModal').addEventListener('click', ()=>{
+  document.getElementById('lensModalBg').classList.remove('show');
+});
+document.querySelectorAll('.lens-pick .opt').forEach(opt=>{
+  opt.addEventListener('click', ()=>{
+    currentLens = opt.dataset.lens;
+    const info = lensInfo[currentLens];
+    document.getElementById('lensBadge').textContent = info.label;
+    document.getElementById('lensBadge').style.background = info.color;
+    renderSelectedBookBox();
+    document.getElementById('lensModalBg').classList.remove('show');
+    document.getElementById('formModalBg').classList.add('show');
+  });
+});
+function renderSelectedBookBox(){
+  const el = document.getElementById('selectedBookBox');
+  if(!currentBook){ el.innerHTML = ''; return; }
+  el.innerHTML = (currentBook.coverUrl ? `<img src="${currentBook.coverUrl}">` : `<div class="noimg">📕</div>`)
+    + `<div class="txt"><b>${(currentBook.title||'').replace(/</g,'&lt;')}</b>${currentBook.author? '<span>'+currentBook.author.replace(/</g,'&lt;')+'</span>':''}</div>`;
+}
+document.getElementById('closeFormModal').addEventListener('click', ()=>{
+  document.getElementById('formModalBg').classList.remove('show');
+});
+
+// ---------------- 사진 업로드(축소 압축) ----------------
+document.getElementById('photoInput').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev)=>{
+    const img = new Image();
+    img.onload = ()=>{
+      const maxW = 900;
+      const scale = Math.min(1, maxW / img.width);
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width * scale;
+      canvas.height = img.height * scale;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      uploadedImageData = canvas.toDataURL('image/jpeg', 0.6);
+      const prev = document.getElementById('previewImg');
+      prev.src = uploadedImageData;
+      prev.style.display = 'block';
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+});
+
+// ---------------- 저장 ----------------
+document.getElementById('saveBtn').addEventListener('click', async ()=>{
+  if(!currentStudent || !currentBook) return;
+  const date = document.getElementById('fDate').value;
+  const page = document.getElementById('fPage').value.trim();
+  const sentence = document.getElementById('sentence').value.trim();
+  if(!sentence && !uploadedImageData){
+    showToast('문장(또는 사진)을 입력해 주세요!');
+    return;
+  }
+  const btn = document.getElementById('saveBtn');
+  btn.disabled = true; btn.textContent = '저장 중...';
+  try{
+    await db.collection('entries').add({
+      studentKey: currentStudent.key,
+      grade: currentStudent.grade, classNum: currentStudent.classNum,
+      number: currentStudent.num, name: currentStudent.name,
+      bookId: currentBook.id, title: currentBook.title, author: currentBook.author || '',
+      coverUrl: currentBook.coverUrl || null,
+      lens: currentLens, date, page, sentence,
+      image: uploadedImageData || null,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    document.getElementById('fPage').value='';
+    document.getElementById('sentence').value='';
+    document.getElementById('photoInput').value='';
+    document.getElementById('previewImg').style.display='none';
+    uploadedImageData = null;
+    document.getElementById('formModalBg').classList.remove('show');
+    showToast('보물 문장을 담았어요! 💎');
+  }catch(e){
+    console.error(e);
+    showToast('저장에 실패했어요. 연결을 확인해 주세요.');
+  }finally{
+    btn.disabled = false; btn.textContent = '보물 문장 담기 💎';
+  }
+});
+
+// ---------------- 문장 목록 (실시간, 오늘 + 책 필터) ----------------
+function startEntryListener(){
+  if(unsubscribeEntries) unsubscribeEntries();
+  unsubscribeEntries = db.collection('entries')
+    .where('studentKey','==', currentStudent.key)
+    .onSnapshot(snap=>{
+      allEntriesCache = [];
+      snap.forEach(doc=> allEntriesCache.push(doc.data()));
+      allEntriesCache.sort((a,b)=> (b.createdAt?.seconds||0) - (a.createdAt?.seconds||0));
+      renderEntries();
+    }, err=> console.error(err));
+}
+
+function renderEntries(){
+  const listEl = document.getElementById('entryList');
+  const titleEl = document.getElementById('listTitle');
+  let list = allEntriesCache;
+  if(activeBookFilter){
+    list = list.filter(e => e.bookId === activeBookFilter);
+    const b = myBooks.find(x=>x.id===activeBookFilter);
+    titleEl.textContent = `📖 "${b ? b.title : ''}" 에서 모은 보물 문장`;
+  }else{
+    const today = new Date().toISOString().slice(0,10);
+    list = list.filter(e => e.date === today);
+    titleEl.textContent = '오늘 내가 모은 보물 문장';
+  }
+  listEl.innerHTML = '';
+  if(list.length === 0){
+    listEl.innerHTML = '<div style="text-align:center;color:#fff3e0;font-size:0.85rem;">모은 문장이 아직 없어요. 첫 보물을 담아보세요!</div>';
+    return;
+  }
+  list.forEach(en=>{
+    const info = lensInfo[en.lens] || lensInfo.heart;
+    const div = document.createElement('div');
+    div.className = 'entry ' + info.class;
+    div.innerHTML = `
+      ${en.coverUrl ? `<img class="cover" src="${en.coverUrl}">` : ''}
+      <div class="body">
+        <div class="meta">${info.label} · ${en.date || ''} · <b>${(en.title||'').replace(/</g,'&lt;')}</b> ${en.author? '('+en.author.replace(/</g,'&lt;')+')':''} ${en.page? '· '+en.page.replace(/</g,'&lt;'):''}</div>
+        <div class="sent">${(en.sentence||'').replace(/</g,'&lt;')}</div>
+        ${en.image ? `<img class="photo" src="${en.image}">` : ''}
+      </div>
+    `;
+    listEl.appendChild(div);
+  });
+}
+</script>
+</body>
+</html>
